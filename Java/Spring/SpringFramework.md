@@ -88,6 +88,19 @@
 		*   最终通知：无论如何都会最后执行的（try后的finally
 	*   切面：把通知应用到切入点的过程（织入、执行
 *   基于XML
+	*	配置切入点
+		```xml
+		//注意需要bean
+		<aop:config>
+			//切入点
+			<aop:pointcut id="切入点名称" expression="同下方注解选择切入点参数"/>
+			//通知
+			<aop:aspect ref="通知类">
+				//其他通知类型同
+				<aop:before method="通知实现方法" pointcut-ref="切入点名称"/>
+			</aop:aspect>
+		</aop:config>
+		```
 *   基于注解
 	*   启用方式
 		*   配置文件  
@@ -99,4 +112,48 @@
             ```xml
             <aop:aspectj-autoproxy/>
             ```
-        *   
+		*	定义配置类  
+			在IOC的基础上再加上@EnableAspectJAutoProxy  
+			proxyTargetClass表示是否强制cglib
+    *	被用于加强的和加强内容的类都要为Bean  
+		通知类还需注解@Aspect  
+	*	通知方法前加上注解 
+		|注解|用途|
+		|---|---|
+		|@Before|前置通知，在连接点前执行|
+		|@AfterReturning|连接点正常执行后通知，没有抛出错误时执行|
+		|@AfterThrowing|连接点抛出错误时执行|
+		|@After|无论有没有抛出错误都在连接点结束后执行(finally)|
+		|@Around|在@Before前和没有抛出错误结束后都执行|
+
+		***不同版本可能会有不同***  
+		顺序: (环绕调用前--)前--切入点--后返回/后抛出--最终后(--环绕调用后)
+	*	通知的参数语法（切入点选择）
+		*	execution(* 包.类.方法(参数类型表))  
+			指定为这个方法
+		*	execution(* 包.类.*(..两个点表示任意))  
+			指定为这个类的所有方法
+		*	execution(* 包.*.*(..))  
+			指定为这个包下所有类的所有方法（当然也可指定所有类的某个方法
+		*	execution(* 包..*.*(..))
+			在上一个的基础上，一同搜索子包里的
+		*	execution(* *A(..))
+			所有以“A”结尾的方法
+		*	within(包.*)  
+			包内的所有接入点，也可双点搜索子包  
+			Spring AOP Only
+		*	this/target(接口全路径)  
+			实现了这个接口的类的接入点  
+			this:	匹配不到被重写了的接口中的方法  
+			target:	全部  
+		*	相关功能注解
+			*	@Target(注解类)  
+				同target execution用法
+			*	@Annotation(注解类)
+				所有含有这个注解的方法（接入点）
+			*	@Within(注解类)
+				同this execution用法
+			*	@Order(优先级，小的优先)  
+				多个通知同时作用于一个切入点时控制通知链的内部的顺序
+		*	抽取公共（复用）切入点  
+			在通知类中对某个方法使用@Pointcut选择切入点，其他通知的参数写上该方法名
