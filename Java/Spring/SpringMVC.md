@@ -1,5 +1,5 @@
 # 内部原理
-工作流程如图:  （非Restful）
+工作流程如图:  
 1.  当接收到用户的请求时，请求进入到DispatcherServlet进行处理
 2.  DispatcherServlet根据请求的URL从HandlerMapping获取映射的处理请求的Bean，也就是Controller
 3.  通过HandlerAdapter调用Controller（应该是适配处理了数据转换），Controller内部处理业务
@@ -94,13 +94,13 @@
     *   转发是指带着请求的参数到下一个地方去
     *   重定向是客户端浏览器自己进行跳转的行为（相当于用户自己重新访问新页面  
         重定向无法访问WEB-INF
-*   过滤器（乱码解决）
-    *   实现javax.fileter接口，在do内设置编码（并传递），在web.xml内注册
-    *   直接在web.xml配置使用SpringMVC的过滤器
+*   乱码解决
+    *   过滤器（解决接收请求的乱码）  
+        直接在web.xml配置使用SpringMVC的过滤器
         ```xml
         <filter>
             <filter-name>YOURNAME</filter-name>
-            <filter-class>org.springframework.web.fileter.CharacterEncodingFilter</filter-class>
+            <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
             <init-param>
                 <param-name>encoding</param-name>
                 <param-value>utf-8</param-value>
@@ -113,11 +113,41 @@
         </filter>
         <filter-mapping>
             <filter-name>YOURNAME</filter-name>
-            <url-pattern>/</urlpattern>
+            <url-pattern>/</url-pattern>
             //考虑/*让其他资源也支持
         </filter-mapping>
         ```
-    *   对第一种方法过滤器类使用@WebFilter，参数与上方配置类似  
+    *   MessageConverter（解决@Response返回字符串乱码）
+        *   直接在映射注解配置参数produces  
+            如produces="application/json;charset=UTF-8"  
+            事实证明，只设置为Json则不需要后面的编码charset，因为Json不会被SpringMVC内部转换
+        *   在```<mvc:annotation-driven>```中配置converter  
+            ```xml
+            <mvc:annotation-driven>
+                <mvc:message-converters register-defaults="true">
+                    <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                        <property name="defaultCharset" value="UTF-8"/>
+                        <property name="writeAcceptCharset" value="false"/>
+                    </bean>
+                    <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                        <property name="objectMapper">
+                            <bean class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+                                <property name="failOnEmptyBeans" value="false"/>
+                            </bean>
+                        </property>
+                    </bean>
+                </mvc:message-converters>
+            </mvc:annotation-driven>
+            <!--这样也行-->
+            <mvc:annotation-driven>
+                <mvc:message-converters>
+                    <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                        <property name="defaultCharset" value="utf-8"/>
+                        <property name="writeAcceptCharset" value="false"/>
+                    </bean>
+                </mvc:message-converters>
+            </mvc:annotation-driven>
+            ```
 *   请求和响应数据(HttpServletXxx)  
     当方法参数有HttpServletRequest或HttpServletResponse时会自动注入，像上面Model  
     当然也可以使用@Autowired注解成员变量，虽然@Controller是单例但会自动识别当前请求和响应
