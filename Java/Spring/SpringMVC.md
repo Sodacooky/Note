@@ -171,3 +171,16 @@
     *   如果RequestMapping中的参数名称和方法参数表得到相同可省略@PathVariable的参数  
     *   @RequestMapping中可以指定method为GET/PUT/POST/DELETE
     *   方法的指定也可以通过将@RequestMapping改为@GetMapping/@PostMapping等实现
+
+## 文件上传下载
+依赖于commons-io和commons-fileupload
+#### 将组件注册Bean
+```xml
+<bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+    <property name="defaultEncoding" value="UTF-8"/>
+    <property name="maxUploadSize" value="1024000000"/>
+    <property name="maxInMemorySize" value="1024000"/>
+</bean>
+```
+#### 参数
+控制器的方法的参数为CommonsMultipartFile类型
