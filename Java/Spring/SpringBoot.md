@@ -74,7 +74,30 @@ SpringBoot配置，是@Configuration修饰的@Component的组件
     @PropertySource("classpath:xxx")  
     @Value("${key}")
 
-## 更换banner
+#### 多配置
+*   多文件
+    1.  可以在SpringBoot支持的目录下，保存各种名为application-xxx.yml文件
+    2.  在默认的，最高优先级的配置文件中通过spring.profiles.active指定上面的xxx
+*   单文件
+    1.  在默认位置的配置文件中，用三个横杠```---```分割各个配置
+    2.  不同的配置中，spring.profiles来命名
+    3.  选择方式同多文件，卸载没有命名的、默认的配置中
+
+#### 更换banner
 resources目录下的banner.txt
 
+#### 静态资源
+默认没有配置则按：classpath:resources > classpath:static > classpath:public 顺序  
+配置后即暴露这些静态资源  
+配置项为spring.mvc.static-path-pattern=/a/,classpath:/b/
+>   放在templates目录下的，在模板引擎的支持下只能通过Controller的View进入，类似WEB-INF
+
+#### 首页与图标定制(类似welcome-page)
+*   首页index.html默认能放在上述的静态资源目录中
+*   网站图标favicon.ico放在静态资源目录下(旧版本还需spring.mvc.favicon.enabled=false
 ---
+
+## 使用
+#### 数据校验 JSR303
+*   通常对POJO类使用，限制数据的内容。如限制为邮箱或符合某正则表达式的字符串。
+*   如@NotNull, @Size, @Pattern等
